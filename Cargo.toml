@@ -9,7 +9,7 @@ readme = "README.md"
 license = "MIT"
 categories = ["command-line-interface", "filesystem"]
 keywords = ["gpu", "nvidia", "info", "information", "amd"]
-edition = "2024"
+edition = '2024'
 rust-version = "1.85.0"
 
 include = ["src/**/*", "Cargo.toml", "README.md"]
