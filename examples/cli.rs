@@ -8,11 +8,11 @@ fn main() {
     if let Some(gpu) = manager.gpus.first() {
         println!(
             "{}\n{}\n{}\n{}\n{}",
-            gpu.get_name(),
-            gpu.get_temperature(),
-            gpu.get_utilization(),
-            gpu.get_power_usage(),
-            gpu.get_clock_speed()
+            gpu.name_gpu(),
+            gpu.get_temperature_gpu(),
+            gpu.get_utilization_gpu(),
+            gpu.get_power_usage_gpu(),
+            gpu.get_clock_speed_gpu()
         );
     }
 }

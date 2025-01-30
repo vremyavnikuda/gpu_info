@@ -11,7 +11,7 @@
 //! — Waybar integration
 //! — Power state monitoring
 //! — Vendor-specific data collection.
-// FIXME: Improve macOS and Windows support
+// TODO: Improve macOS and Windows support
 // # Platform Support
 // — Linux: Full support
 // — Windows: Partial NVIDIA support
@@ -35,7 +35,7 @@ use serde::{Deserialize, Serialize};
 ///     ..Default::default()
 /// };
 ///
-/// assert_eq!(gpu.get_utilization(), "Utilization: 45.5%");
+/// assert_eq!(gpu.get_utilization_gpu(), "Utilization: 45.5%");
 /// ```
 /// Represents GPU hardware vendors
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
@@ -87,7 +87,7 @@ pub struct GpuInfo {
 
 impl GpuInfo {
     /// Returns the GPU model name as a string slice
-    pub fn get_name(&self) -> &str {
+    pub fn name_gpu(&self) -> &str {
         &self.name
     }
     /// Returns a reference to the GPU vendor enumeration
@@ -104,9 +104,9 @@ impl GpuInfo {
     ///     ..Default::default()
     /// };
     ///
-    /// assert!(matches!(gpu.verndor(), GpuVendor::Nvidia));
+    /// assert!(matches!(gpu.vendor_gpu(), GpuVendor::Nvidia));
     /// ```
-    pub fn verndor(&self) -> &GpuVendor {
+    pub fn vendor_gpu(&self) -> &GpuVendor {
         &self.vendor
     }
     /// Returns the current temperature of the GPU in Celsius
@@ -121,10 +121,10 @@ impl GpuInfo {
     ///     temperature: Some(70.0),
     ///     ..Default::default()
     /// };
-    /// assert_eq!(gpu.temperature(), Some(70.0));
+    /// assert_eq!(gpu.temperature_gpu(), Some(70.0));
     /// ```
 
-    pub fn temperature(&self) -> Option<f32> {
+    pub fn temperature_gpu(&self) -> Option<f32> {
         self.temperature
     }
 
@@ -140,9 +140,9 @@ impl GpuInfo {
     ///     utilization: Some(45.5),
     ///     ..Default::default()
     /// };
-    /// assert_eq!(gpu.utilization(), Some(45.5));
+    /// assert_eq!(gpu.utilization_gpu(), Some(45.5));
     /// ```
-    pub fn utilization(&self) -> Option<f32> {
+    pub fn utilization_gpu(&self) -> Option<f32> {
         self.utilization
     }
 
@@ -153,7 +153,7 @@ impl GpuInfo {
     ///
     /// # Examples
     ///
-    pub fn clock_speed(&self) -> Option<u64> {
+    pub fn clock_speed_gpu(&self) -> Option<u64> {
         self.clock_speed
     }
 
@@ -169,9 +169,9 @@ impl GpuInfo {
     ///     max_clock_speed: Some(2000),
     ///     ..Default::default()
     /// };
-    /// assert_eq!(gpu.max_clock_speed(), Some(2000));
+    /// assert_eq!(gpu.max_clock_speed_gpu(), Some(2000));
     /// ```
-    pub fn max_clock_speed(&self) -> Option<u64> {
+    pub fn max_clock_speed_gpu(&self) -> Option<u64> {
         self.max_clock_speed
     }
 
@@ -182,7 +182,7 @@ impl GpuInfo {
     ///
     /// # Examples
     ///
-    pub fn power_usage(&self) -> Option<f32> {
+    pub fn power_usage_gpu(&self) -> Option<f32> {
         self.power_usage
     }
 
@@ -193,21 +193,15 @@ impl GpuInfo {
     ///
     /// # Examples
     ///
-    pub fn max_power_usage(&self) -> Option<f32> {
+    pub fn max_power_usage_gpu(&self) -> Option<f32> {
         self.max_power_usage
-    }
-
-
-    /// Returns reference to vendor classification
-    pub fn get_vendor(&self) -> &GpuVendor {
-        &self.vendor
     }
 
     /// Indicates if the GPU is currently active
     ///
     /// # Note
     /// Activation state detection depends on vendor implementation
-    pub fn is_active(&self) -> bool {
+    pub fn is_active_gpu(&self) -> bool {
         self.is_active
     }
 
@@ -216,7 +210,7 @@ impl GpuInfo {
     /// # Returns
     /// - Formatted string: "Temperature: XX°C"
     /// - "N/A" if temperature unavailable
-    pub fn get_temperature(&self) -> String {
+    pub fn get_temperature_gpu(&self) -> String {
         match self.temperature {
             Some(temp) => format!("Temperature: {}°C", temp),
             None => "Temperature: N/A".to_string(),
@@ -228,7 +222,7 @@ impl GpuInfo {
     /// # Returns
     /// - Formatted string: "Utilization: XX%"
     /// - "N/A" if utilization data unavailable
-    pub fn get_utilization(&self) -> String {
+    pub fn get_utilization_gpu(&self) -> String {
         match self.utilization {
             Some(util) => format!("Utilization: {}%", util),
             None => "Utilization: N/A".to_string(),
@@ -240,12 +234,12 @@ impl GpuInfo {
     /// # Returns
     /// String in format "Clock Speed: CURRENT/MAX MHz"
     /// Uses 0 for missing values
-    pub fn get_clock_speed(&self) -> String {
+    pub fn get_clock_speed_gpu(&self) -> String {
         let current = self.clock_speed.unwrap_or(0);
         let max = self.max_clock_speed.unwrap_or(0);
-        match (self.clock_speed,self.max_clock_speed){
-            (Some(_),Some(_))=> format!("Clock Speed: {}/{} MHz",current,max),
-            _ => "Clock Speed: N/A".to_string()
+        match (self.clock_speed, self.max_clock_speed) {
+            (Some(_), Some(_)) => format!("Clock Speed: {}/{} MHz", current, max),
+            _ => "Clock Speed: N/A".to_string(),
         }
     }
 
@@ -255,12 +249,12 @@ impl GpuInfo {
     /// String in format "Power Usage: CURRENT/MAX W"
     /// - CURRENT: 2 decimal places
     /// - MAX: 0 decimal places
-    pub fn get_power_usage(&self) -> String {
+    pub fn get_power_usage_gpu(&self) -> String {
         let current = self.power_usage.unwrap_or(0.0);
         let max = self.max_power_usage.unwrap_or(0.0);
-        match (self.power_usage,self.max_power_usage){
-            (Some(_),Some(_))=> format!("Power Usage: {:.2}/{} W",current,max),
-            _ => "Power Usage: N/A".to_string()
+        match (self.power_usage, self.max_power_usage) {
+            (Some(_), Some(_)) => format!("Power Usage: {:.2}/{} W", current, max),
+            _ => "Power Usage: N/A".to_string(),
         }
     }
 }
