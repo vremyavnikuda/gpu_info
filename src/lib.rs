@@ -1,43 +1,45 @@
-#![feature(rustdoc_missing_doc_code_examples)]
-#![deny(missing_debug_implementations, missing_docs, unsafe_code)]
+//gpu_info/src/lib.rs
+pub use crate::gpu_info::GpuInfo;
 
-//! `gpu_info` crate provides functionality to detect and manage GPU information.
-//!
-//! ## Modules
-//!
-//! - [manager]: Contains structures and functions to detect and manage GPU information.
-//!
-//! ## Examples
-//!
-//! ```rust
-//! use gpu_info::{GpuManager, GpuInfo, GpuVendor};
-//!
-//! let mut manager = GpuManager::new();
-//! manager.refresh();
-//!
-//! for (idx, gpu) in manager.gpus.iter().enumerate() {
-//!     println!("GPU {}: {}", idx, gpu.get_name());
-//!     println!("Temperature: {}", gpu.get_temperature()); // Теперь выведет иконку
-//! }
-//! ```
+pub mod gpu_info;
+pub mod vendor;
+pub mod unknown;
 
-/// Module documentation for `gpu_info` module.
-///
-/// The `gpu_info` module provides structures and functions to detect and manage GPU information.
-///
-/// ## Structures
-///
-/// - `GpuManager`: Manages the detection and information of GPUs.
-/// - `Gpu`: Represents a GPU with its properties.
-///
-/// ## Enums
-///
-/// - `GpuVendor`: Enum representing different GPU vendors (Nvidia, AMD, Intel).
-pub mod mode;
+#[allow(missing_debug_implementations, missing_docs, unsafe_code)]
+#[cfg(target_os = "linux")]
+#[path = "linux/mod.rs"]
+mod imp;
 
-use mode::{gpu, manager, vendor};
-// Re-export main types to the crate root
-pub use gpu::GpuInfo;
-pub use manager::GpuManager;
-pub use vendor::GpuVendor;
-pub(crate) mod test;
+#[cfg(target_os = "windows")]
+#[path = "windows/mod.rs"]
+mod imp;
+
+#[cfg(target_os = "macos")]
+#[path = "macos/mod.rs"]
+mod imp;
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+#[path = "unknown/mod.rs"]
+pub mod imp;
+mod test;
+
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+/// Gets the `GpuInfo` of the primary GPU in the system.
+///
+/// If the system does not have a GPU, or the GPU is not supported, this returns
+/// an empty `GpuInfo`.
+///
+/// # Linux and macOS
+///
+/// This function is supported on Linux and macOS.
+///
+/// # Windows
+///
+/// This function is supported on Windows.
+///
+/// # Other platforms
+///
+/// This function is not supported on other platforms.
+pub fn get() -> GpuInfo {
+    imp::info_gpu()
+}
