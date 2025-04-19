@@ -3,7 +3,6 @@
 use crate::vendor::Vendor;
 use std::fmt::{ Debug, Display, Formatter };
 
-// TODO: add to DOC
 /// Trait fmt_string (форматируем `результат<T>` в строковое представление)  defines a method for formatting GPU information.
 pub trait Formattable: Debug {
     fn fmt_string(&self) -> String;
@@ -79,8 +78,11 @@ impl Formattable for Option<bool> {
 
     fn fmt_string(&self) -> String {
         match self {
-            Some(value) => value.to_string(),
-            None => String::from("N/A"),
+            Some(true) => format!("Active"),
+            Some(false) => format!("Inactive"),
+            _ => format!("N/A"),
+            // Some(value) => value.to_string(),
+            // None => String::from("N/A"),
         }
     }
 }
@@ -93,8 +95,8 @@ impl Formattable for Option<String> {
     /// * If `None`, returns "N/A" indicating the absence of a value.
     fn fmt_string(&self) -> String {
         match self {
-            Some(value) => value.to_string(),
-            None => String::from("N/A"),
+            Some(value) => format!("{}", value),
+            None => format!("N/A"),
         }
     }
 }
