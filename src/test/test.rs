@@ -695,6 +695,7 @@ mod gpu_info_tests {
     /// * `None` - If the mocked command fails.
     /// * `Some(MockCommand)` - If the mocked command succeeds.
     ///
+    #[allow(dead_code)]
     fn mock_command(success: bool, output: &'static str) {
         MOCK_COMMAND.with(|mc| {
             *mc.borrow_mut() = Some(MockCommand::new(success, output));
@@ -1130,9 +1131,9 @@ fn test_get_vendor_nvidia() {
 //     assert_eq!(gpu.power_limit, None);
 // }
 #[cfg(test)]
-#[cfg(any(target_os = "linux", target_os = "windows"))]
+#[cfg(target_os = "linux")]
 mod linux_nvidia_test {
-    use crate::imp::{update_nvidia_info, MockNvmlClient, NVML_SUCCESS};
+    use crate::linux::{update_nvidia_info, MockNvmlClient, NVML_SUCCESS};
 
     /// Test `update_nvidia_info()` updates GPU information
     #[test]
