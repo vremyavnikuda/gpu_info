@@ -1,9 +1,8 @@
 //src/test/test.rs
 #[cfg(test)]
 mod gpu_info_tests {
-    use crate::{ gpu_info::Formattable, vendor, GpuInfo };
+    use crate::{gpu_info::Formattable, vendor::Vendor, GpuInfo};
     use std::cell::RefCell;
-    use vendor::Vendor;
 
     #[allow(dead_code)]
     struct MockCommand {
@@ -601,7 +600,7 @@ mod gpu_info_tests {
             power_limit: Some(250.0),
             memory_total: Some(8192),
             driver_version: Some("470.57.02".to_string()),
-            max_clock_speed: Some(2100)
+            max_clock_speed: Some(2100),
         };
 
         let display_output = format!("{}", gpu_info);
@@ -696,7 +695,6 @@ mod gpu_info_tests {
     /// * `None` - If the mocked command fails.
     /// * `Some(MockCommand)` - If the mocked command succeeds.
     ///
-    #[allow(dead_code)]
     fn mock_command(success: bool, output: &'static str) {
         MOCK_COMMAND.with(|mc| {
             *mc.borrow_mut() = Some(MockCommand::new(success, output));
@@ -740,7 +738,7 @@ mod gpu_info_tests {
         assert_eq!(gpu.max_clock_speed(), Some(2000));
         assert_eq!(gpu.power_usage(), Some(100.0));
         assert_eq!(gpu.power_limit(), Some(150.0));
-        assert!(gpu.active().unwrap(),"{}" ,true);
+        assert!(gpu.active().unwrap(), "{}", true);
     }
 
     /// Tests that `GpuManager` can be successfully created and that it is
@@ -748,7 +746,10 @@ mod gpu_info_tests {
     #[test]
     fn _test_gpu_manager_creation() {
         let gpu = GpuInfo::default();
-        assert_eq!(gpu.name_gpu, None, "Expected gpus to be empty, but it was not.");
+        assert_eq!(
+            gpu.name_gpu, None,
+            "Expected gpus to be empty, but it was not."
+        );
         assert_eq!(gpu.active.fmt_string(), "N/A");
     }
 
@@ -864,7 +865,10 @@ fn _test_power_state_check() {
 #[cfg(all(not(target_os = "hermit"), any(unix, doc)))]
 mod mock_impl {
     use super::*;
-    use std::{ os::unix::process::ExitStatusExt, process::{ Command, Output } };
+    use std::{
+        os::unix::process::ExitStatusExt,
+        process::{Command, Output},
+    };
 
     /// Mocks the execution of a system command by returning predefined output.
     ///
@@ -1055,18 +1059,27 @@ fn integration_test_real_system() {
     manager.detect_gpus();
 
     if Path::new("/usr/bin/nvidia-smi").exists() {
-        assert!(manager.gpus.iter().any(|g| matches!(g.vendor, GpuVendor::Nvidia)));
+        assert!(manager
+            .gpus
+            .iter()
+            .any(|g| matches!(g.vendor, GpuVendor::Nvidia)));
     }
 
     if Path::new("/sys/class/drm/card0/device/vendor").exists() {
         let vendor = fs::read_to_string("/sys/class/drm/card0/device/vendor").unwrap_or_default();
 
         if vendor.contains("0x1002") {
-            assert!(manager.gpu.iter().any(|g| matches!(g.vendor, GpuVendor::AMD)));
+            assert!(manager
+                .gpu
+                .iter()
+                .any(|g| matches!(g.vendor, GpuVendor::AMD)));
         }
 
         if vendor.contains("0x8086") {
-            assert!(manager.gpu.iter().any(|g| matches!(g.vendor, GpuVendor::Intel)));
+            assert!(manager
+                .gpu
+                .iter()
+                .any(|g| matches!(g.vendor, GpuVendor::Intel)));
         }
     }
 }
@@ -1117,9 +1130,9 @@ fn test_get_vendor_nvidia() {
 //     assert_eq!(gpu.power_limit, None);
 // }
 #[cfg(test)]
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "windows"))]
 mod linux_nvidia_test {
-    use crate::imp::{ update_nvidia_info, MockNvmlClient, NVML_SUCCESS };
+    use crate::imp::{update_nvidia_info, MockNvmlClient, NVML_SUCCESS};
 
     /// Test `update_nvidia_info()` updates GPU information
     #[test]
@@ -1136,45 +1149,61 @@ mod linux_nvidia_test {
             *count = 1;
             NVML_SUCCESS
         });
-        mock_client.expect_get_handle_by_index().returning(|_, device| unsafe {
-            *device = std::ptr::null_mut();
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_name().returning(|_, name, length| unsafe {
-            let test_name = "NVIDIA GeForce RTX 3080".as_bytes();
-            std::ptr::copy_nonoverlapping(
-                test_name.as_ptr(),
-                name as *mut u8,
-                test_name.len().min(length as usize)
-            );
-            *name.add(test_name.len().min(length as usize)) = 0;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_temperature().returning(|_, _, temp| unsafe {
-            *temp = 70;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_utilization_rates().returning(|_, util| unsafe {
-            (*util).gpu = 85;
-            (*util).memory = 75;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_power_usage().returning(|_, milliwatts| unsafe {
-            *milliwatts = 120000;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_clock_info().returning(|_, _, clock| unsafe {
-            *clock = 1500;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_max_clock_info().returning(|_, _, clock| unsafe {
-            *clock = 2100;
-            NVML_SUCCESS
-        });
-        mock_client.expect_get_power_management_limit().returning(|_, limit| unsafe {
-            *limit = 250000;
-            NVML_SUCCESS
-        });
+        mock_client
+            .expect_get_handle_by_index()
+            .returning(|_, device| unsafe {
+                *device = std::ptr::null_mut();
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_name()
+            .returning(|_, name, length| unsafe {
+                let test_name = "NVIDIA GeForce RTX 3080".as_bytes();
+                std::ptr::copy_nonoverlapping(
+                    test_name.as_ptr(),
+                    name as *mut u8,
+                    test_name.len().min(length as usize),
+                );
+                *name.add(test_name.len().min(length as usize)) = 0;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_temperature()
+            .returning(|_, _, temp| unsafe {
+                *temp = 70;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_utilization_rates()
+            .returning(|_, util| unsafe {
+                (*util).gpu = 85;
+                (*util).memory = 75;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_power_usage()
+            .returning(|_, milliwatts| unsafe {
+                *milliwatts = 120000;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_clock_info()
+            .returning(|_, _, clock| unsafe {
+                *clock = 1500;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_max_clock_info()
+            .returning(|_, _, clock| unsafe {
+                *clock = 2100;
+                NVML_SUCCESS
+            });
+        mock_client
+            .expect_get_power_management_limit()
+            .returning(|_, limit| unsafe {
+                *limit = 250000;
+                NVML_SUCCESS
+            });
 
         update_nvidia_info(&mut gpu);
 

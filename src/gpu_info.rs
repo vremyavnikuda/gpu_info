@@ -1,7 +1,8 @@
-use crate::vendor::Vendor;
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::RwLock;
 use std::time::{Duration, Instant};
+
+use crate::vendor::Vendor;
 
 #[derive(Debug, thiserror::Error)]
 pub enum GpuError {
@@ -201,7 +202,7 @@ impl GpuInfo {
     pub fn write_vendor(vendor: Vendor) -> Self {
         Self {
             vendor,
-            ..Default::default()
+            ..GpuInfo::default()
         }
     }
 

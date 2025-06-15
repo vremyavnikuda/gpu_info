@@ -2,12 +2,12 @@
 pub use crate::gpu_info::{GpuError, GpuInfo, Result};
 
 pub mod gpu_info;
+pub mod vendor;
+
 #[allow(missing_debug_implementations, missing_docs, unsafe_code)]
 #[cfg(target_os = "linux")]
 #[path = "linux/mod.rs"]
 mod imp;
-pub mod unknown;
-pub mod vendor;
 
 #[cfg(target_os = "windows")]
 #[path = "windows/mod.rs"]
