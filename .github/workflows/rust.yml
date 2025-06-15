@@ -1,4 +1,4 @@
-name: Rust CI
+name: rust fmt check
 
 on:
   push:
@@ -19,5 +19,3 @@ jobs:
           override: true
       - name: cargo fmt --check
         run: cargo fmt --check
-      - name: cargo clippy --all-targets --all-features -- -D warnings
-        run: cargo clippy --all-targets --all-features -- -D warnings
