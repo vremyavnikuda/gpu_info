@@ -106,7 +106,13 @@ static NVML_CLIENT: Lazy<Arc<Mutex<Option<NvmlClientImpl>>>> =
 pub fn load_local_nvml() -> bool {
     let mut success = false;
     INIT.call_once(|| {
-        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+        let manifest_dir = match std::env::var("CARGO_MANIFEST_DIR") {
+            Ok(dir) => dir,
+            Err(e) => {
+                error!("Failed to get CARGO_MANIFEST_DIR: {}", e);
+                return;
+            }
+        };
         let dll_path = format!("{}/src/libs/nvml.dll", manifest_dir);
         let wide_path: Vec<u16> = dll_path.encode_utf16().chain(std::iter::once(0)).collect();
         unsafe {
