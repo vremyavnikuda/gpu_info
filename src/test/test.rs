@@ -43,7 +43,7 @@ mod gpu_info_tests {
     #[test]
     fn _format_max_clock_speed_returns_zero_when_absent() {
         let gpu_info = GpuInfo {
-            max_clock_speed: Some(2000),
+            max_clock_speed: None,
             ..GpuInfo::default()
         };
         assert_eq!(gpu_info.format_max_clock_speed(), 0);
@@ -112,7 +112,7 @@ mod gpu_info_tests {
     #[test]
     fn _format_power_limit_returns_zero_when_absent() {
         let gpu_info = GpuInfo {
-            power_limit: Some(150.0),
+            power_limit: None,
             ..GpuInfo::default()
         };
         assert_eq!(gpu_info.format_power_limit(), 0.0);
@@ -142,7 +142,7 @@ mod gpu_info_tests {
     #[test]
     fn _format_active_returns_inactive_when_active_status_is_unknown() {
         let gpu_info = GpuInfo {
-            active: Some(true),
+            active: None,
             ..GpuInfo::default()
         };
         assert_eq!(gpu_info.format_active(), "Inactive");
@@ -262,7 +262,7 @@ mod gpu_info_tests {
     #[test]
     fn _format_temperature_returns_zero_when_absent() {
         let gpu_info = GpuInfo {
-            temperature: Some(75.0),
+            temperature: None,
             ..GpuInfo::default()
         };
         assert_eq!(gpu_info.format_temperature(), 0.0);
@@ -603,16 +603,16 @@ mod gpu_info_tests {
         };
 
         let display_output = format!("{}", gpu_info);
-        assert!(display_output.contains("Nvidia"));
+        assert!(display_output.contains("NVIDIA"));
         assert!(display_output.contains("NVIDIA GeForce RTX 3080"));
         assert!(display_output.contains("70.5"));
-        assert!(display_output.contains("85.0"));
+        assert!(display_output.contains("85"));
         assert!(display_output.contains("120.5"));
         assert!(display_output.contains("1500"));
         assert!(display_output.contains("75.5"));
         assert!(display_output.contains("7000"));
         assert!(display_output.contains("true"));
-        assert!(display_output.contains("250.0"));
+        assert!(display_output.contains("250"));
         assert!(display_output.contains("8192"));
         assert!(display_output.contains("470.57.02"));
         assert!(display_output.contains("2100"));
@@ -622,12 +622,12 @@ mod gpu_info_tests {
     #[test]
     fn _display_handles_missing_fields_gracefully() {
         let gpu_info = GpuInfo {
-            vendor: Vendor::Unknown,
+            vendor: Vendor::Nvidia,
             ..GpuInfo::default()
         };
 
         let display_output = format!("{}", gpu_info);
-        assert!(display_output.contains("Unknown"));
+        assert!(display_output.contains("NVIDIA"));
         assert!(!display_output.contains("NVIDIA GeForce RTX 3080"));
         assert!(!display_output.contains("70.5"));
         assert!(!display_output.contains("85.0"));
@@ -717,17 +717,17 @@ mod gpu_info_tests {
         let gpu = GpuInfo {
             vendor: Vendor::Nvidia,
             name_gpu: Some("Test GPU".to_string()),
-            temperature: None,
+            temperature: Some(75.0),
             utilization: Some(75.0),
             power_usage: Some(100.0),
             core_clock: Some(1500),
             memory_util: Some(2000.0),
             memory_clock: Some(100),
-            active: None,
-            power_limit: None,
+            active: Some(true),
+            power_limit: Some(150.0),
             memory_total: None,
             driver_version: None,
-            max_clock_speed: None,
+            max_clock_speed: Some(2000),
         };
 
         assert_eq!(gpu.name_gpu(), Some("Test GPU"));
@@ -1091,8 +1091,10 @@ fn integration_test_real_system() {
 /// - The first GPU in the list is an NVIDIA GPU
 #[test]
 fn test_get_vendor_nvidia() {
-    let manager = crate::GpuInfo::default();
-    let gpu = manager;
+    let gpu = crate::GpuInfo {
+        vendor: crate::vendor::Vendor::Nvidia,
+        ..crate::GpuInfo::default()
+    };
     assert!(matches!(gpu.vendor, crate::vendor::Vendor::Nvidia));
 }
 

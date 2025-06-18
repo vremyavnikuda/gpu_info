@@ -121,3 +121,4 @@ Cargo.lock
 rust-project.json
 .vscode/
 gpu_info/.vscode
+LIBRARIES.md
